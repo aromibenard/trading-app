@@ -1,0 +1,53 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User  {
+  id String @id
+  name String
+  email String @unique
+  account Account?
+  trades Trade[]
+  dailySummaries DailySummary[]
+}
+
+model Account {
+  id Int @id @default(autoincrement())
+  balance BigInt
+  profit BigInt
+  loss BigInt
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  dailySummaries DailySummary[]
+}
+
+model Trade {
+  id Int @id @default(autoincrement())
+  currencyPair String
+  type  String
+  result String
+  lotSize Float
+  amount BigInt
+  userId String
+  user User @relation(fields: [userId], references: [id])  
+  createdAt DateTime @default(now())
+}
+
+model DailySummary {
+  id Int @id @default(autoincrement())
+  date DateTime @default(now())
+  balance BigInt
+  profit BigInt 
+  loss BigInt
+  tradeCount Int
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  accountId Int
+  account Account @relation(fields: [accountId], references: [id])
+}
