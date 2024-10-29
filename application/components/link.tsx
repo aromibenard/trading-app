@@ -30,11 +30,11 @@ export default function Links() {
                             key={link.name}
                             href={link.href}
                             className={clsx(
-                                'flex space-x-2 hover:scale-110 transition', 
-                                { 'text-teal-500': pathname == link.href },
+                                'flex space-x-2 hover:text-purple-600 transition pl-1', 
+                                { ' rounded-sm border-l-4 py-1 border-purple-600 text-purple-600': pathname == link.href },
                             )}
                         >
-                            <LinkIcon />
+                            <LinkIcon className="" />
                             <p className="hidden md:block">{link.name}</p>
                         </Link>
 

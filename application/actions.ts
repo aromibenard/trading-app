@@ -12,6 +12,35 @@ const schema = z.object({
     lotSize: z.coerce.number()
 })
 
+export const getAccountDetails = async () => {
+    const { userId } = await auth()
+
+    if (!userId) {
+        return { message: "User not authenticated" }
+    }
+
+    try {
+        const userAndAccount = await db.user.findUnique({
+            where: {
+                id: userId
+            },
+            include: {
+                account: true
+            }
+        })
+
+        if (!userAndAccount) {
+            throw new Error("User not found");
+        }
+        const accountDeets = userAndAccount.account
+
+        return accountDeets
+
+    } catch (error) {
+        console.error(error)
+        throw error
+    }
+}
 
 export async function recordTrade( formData: FormData ) { 
     const validatedFormData = schema.safeParse({
@@ -73,7 +102,6 @@ export async function recordTrade( formData: FormData ) {
             }
         })
     }
-
 
     // records the trade
     await db.trade.create({
@@ -139,5 +167,4 @@ export async function recordTrade( formData: FormData ) {
                 accountId: account?.id
             }
         })
-
 }
