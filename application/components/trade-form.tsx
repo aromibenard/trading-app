@@ -5,7 +5,7 @@ import { recordTrade } from "@/actions";
 export default function Form() {
     return (
         <div>
-            <form  action={recordTrade} className="shadow p-4 flex flex-col space-y-4 rounded px-6">
+            <form action={recordTrade} className="shadow p-4 flex flex-col space-y-4 rounded px-6">
                 <div className="flex flex-col space-y-2">
                     <div className="flex flex-col space-y-1">
                         <label htmlFor="currencyPair" className="font-medium">Currency Pair</label>
@@ -40,6 +40,7 @@ export default function Form() {
                         className="bg-gray-100 shadow-sm p-1 rounded-md"
                         step={'0.01'}
                         required
+                        min={'0'}
                     />
                 </div>
                 <div className="flex flex-col space-y-2">
@@ -48,8 +49,9 @@ export default function Form() {
                         type="number"
                         name="lotSize"
                         className="bg-gray-100 shadow-sm p-1 rounded-md"
-                        required
                         step={'0.01'}
+                        required
+                        min={'0'}
                     />
                 </div>
                 <SubmitButton />

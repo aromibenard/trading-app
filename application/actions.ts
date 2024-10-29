@@ -3,6 +3,8 @@
 import { z } from "zod"
 import { db } from "./db"
 import { auth, currentUser } from "@clerk/nextjs/server"
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 
 const schema = z.object({
     currencyPair: z.string(),
@@ -12,13 +14,7 @@ const schema = z.object({
     lotSize: z.coerce.number()
 })
 
-export const getAccountDetails = async () => {
-    const { userId } = await auth()
-
-    if (!userId) {
-        return { message: "User not authenticated" }
-    }
-
+export const getAccountDetails = async (userId:string) => {
     try {
         const userAndAccount = await db.user.findUnique({
             where: {
@@ -59,10 +55,9 @@ export async function recordTrade( formData: FormData ) {
     }
     
     const { currencyPair, type, result, lotSize, amount } = validatedFormData.data
-    const amountInCents = BigInt(Math.round(amount * 100))
+    const amountInCents = Math.round(amount * 100)
     
     const { userId } = await auth()
-    console.log(`User id: ${userId}`)
 
     if (!userId) {
         return { message: "User not authenticated" }
@@ -96,9 +91,9 @@ export async function recordTrade( formData: FormData ) {
         account = await db.account.create({
             data: {
                 userId: userId,
-                balance: BigInt(0),
-                profit: BigInt(0),
-                loss: BigInt(0),
+                balance: 0,
+                profit: 0,
+                loss: 0,
             }
         })
     }
@@ -137,8 +132,8 @@ export async function recordTrade( formData: FormData ) {
         data: {
             userId: userId,
             balance: { increment: amountChange },
-            profit: { increment: isProfit ? amountInCents : BigInt(0) },
-            loss: {increment: isProfit ? BigInt(0) : amountInCents }
+            profit: { increment: isProfit ? amountInCents : 0 },
+            loss: {increment: isProfit ? 0 : amountInCents }
         }
     })
 
@@ -149,8 +144,8 @@ export async function recordTrade( formData: FormData ) {
                     date: new Date(),
                     tradeCount: 1,
                     balance: account?.balance + amountChange,
-                    profit: isProfit ? amountInCents : BigInt(0) ,
-                    loss: isProfit ? BigInt(0) : amountInCents,
+                    profit: isProfit ? amountInCents : 0 ,
+                    loss: isProfit ? 0 : amountInCents,
                     accountId: account?.id
                 }
             })
@@ -162,9 +157,11 @@ export async function recordTrade( formData: FormData ) {
                 userId: userId,
                 tradeCount: dailySummary?.tradeCount + 1,
                 balance: account?.balance + amountChange,
-                profit: dailySummary.profit + ( isProfit ? amountInCents : BigInt(0)),
-                loss: dailySummary.loss + ( isProfit ? BigInt(0) : amountInCents ),
+                profit: dailySummary.profit + ( isProfit ? amountInCents : 0),
+                loss: dailySummary.loss + ( isProfit ? 0 : amountInCents ),
                 accountId: account?.id
             }
         })
+    revalidatePath('/dashboard/metrics')
+    redirect('/dashboard/metrics')
 }
