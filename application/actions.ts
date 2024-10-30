@@ -14,6 +14,31 @@ const schema = z.object({
     lotSize: z.coerce.number()
 })
 
+export async function getTrades(userId:string) {
+    try {
+        const [tradesData, profitableTrades] = await Promise.all([
+            db.trade.findMany({
+                where: {
+                    userId: userId,
+                }
+            }),
+            
+            db.trade.findMany({
+                where: {
+                    userId: userId,
+                    result: 'profit',
+                }
+            })
+        ])
+        
+        const count = tradesData.length
+        const profitableTradesNumber = profitableTrades.length
+        return { count, tradesData , profitableTradesNumber }
+    } catch (error) {
+        throw error
+    }
+}
+
 export const getAccountDetails = async (userId:string) => {
     try {
         const userAndAccount = await db.user.findUnique({
@@ -38,7 +63,7 @@ export const getAccountDetails = async (userId:string) => {
     }
 }
 
-export async function recordTrade( formData: FormData ) { 
+export async function recordTrade( formData: FormData) { 
     const validatedFormData = schema.safeParse({
         currencyPair: formData.get('currencyPair'),
         type: formData.get('orderType'),
@@ -70,10 +95,10 @@ export async function recordTrade( formData: FormData ) {
 
     if (!user) {
         const userDeets = await currentUser()
+
         if (!userDeets) return {
             message : "failed to retrieve user details"
         }
-        console.log(`User name: ${userDeets.firstName}`)
 
         await db.user.create({
             data: {
@@ -82,7 +107,6 @@ export async function recordTrade( formData: FormData ) {
                 email: userDeets?.primaryEmailAddress?.emailAddress ?? " no email"
             }
         })
-
     }
     
     let account = user?.account
@@ -98,59 +122,63 @@ export async function recordTrade( formData: FormData ) {
         })
     }
 
-    // records the trade
-    await db.trade.create({
-        data: {
-            type: type,
-            currencyPair: currencyPair,
-            result: result,
-            amount: amountInCents,
-            lotSize: lotSize,
-            user: {
-                connect: { id: userId }
-            }
-        }
-    })
-
-    const today = new Date()
-    let dailySummary = await db.dailySummary.findFirst({
-        where: {
-            userId: userId,
-            date: {
-                gte: new Date(today.setHours(0,0,0,0)),
-                lt: new Date(today.setHours(23, 59, 59, 999))
-            }
-        }
-    })
-
     const isProfit = result == 'profit'
     const amountChange = isProfit ? amountInCents
     : -amountInCents
 
-    await db.account.update({
-        where: { id: account?.id },
-        data: {
+    await Promise.all([
+        // records the trade
+        db.trade.create({
+            data: {
+                type: type,
+                currencyPair: currencyPair,
+                result: result,
+                amount: amountInCents,
+                lotSize: lotSize,
+                user: {
+                    connect: { id: userId }
+                }
+            }
+        }),
+        //updates account
+        db.account.update({
+            where: { id: account?.id },
+            data: {
+                userId: userId,
+                balance: { increment: amountChange },
+                profit: { increment: isProfit ? amountInCents : 0 },
+                loss: {increment: isProfit ? 0 : amountInCents }
+            }
+        })
+    ])
+    
+    const today = new Date()
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    
+    let dailySummary = await db.dailySummary.findFirst({
+        where: {
             userId: userId,
-            balance: { increment: amountChange },
-            profit: { increment: isProfit ? amountInCents : 0 },
-            loss: {increment: isProfit ? 0 : amountInCents }
+            date: {
+                gte: startOfDay,
+                lt: endOfDay
+            }
         }
     })
 
-        if (!dailySummary) {
-            dailySummary = await db.dailySummary.create({
-                data: {
-                    userId: userId,
-                    date: new Date(),
-                    tradeCount: 1,
-                    balance: account?.balance + amountChange,
-                    profit: isProfit ? amountInCents : 0 ,
-                    loss: isProfit ? 0 : amountInCents,
-                    accountId: account?.id
-                }
-            })
-        }
-
+    if (!dailySummary) {
+        dailySummary = await db.dailySummary.create({
+            data: {
+                userId: userId,
+                date: new Date(),
+                tradeCount: 1,
+                balance: account?.balance + amountChange,
+                profit: isProfit ? amountInCents : 0 ,
+                loss: isProfit ? 0 : amountInCents,
+                accountId: account?.id
+            }
+        })
+    } else {
         await db.dailySummary.update({ 
             where: { id: dailySummary.id},
             data: {
@@ -162,6 +190,8 @@ export async function recordTrade( formData: FormData ) {
                 accountId: account?.id
             }
         })
+    }
+
     revalidatePath('/dashboard/metrics')
     redirect('/dashboard/metrics')
 }
