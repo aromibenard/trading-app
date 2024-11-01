@@ -5,6 +5,7 @@ import { db } from "./db"
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { endOfMonth, format } from "date-fns"
 
 const schema = z.object({
     currencyPair: z.string(),
@@ -14,12 +15,73 @@ const schema = z.object({
     lotSize: z.coerce.number()
 })
 
+const year = new Date().getFullYear()
+
+
+// db transactions 🤑
+export async function getTrend( month:string ) {
+    const firstDayOfMonth = new Date(`${year}-${month}-01 00:00:00`)
+    const lastDayOfMonth = endOfMonth(firstDayOfMonth)
+
+    const [latestBalance, firstAvailableBalance ] = await Promise.all([
+        db.dailySummary.findFirst({
+            where: {
+                date: {
+                    gte: firstDayOfMonth,
+                }
+            },
+            select: {
+                balance:true
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        }),
+        db.dailySummary.findFirst({
+            where: {
+                date: {
+                    lte: firstDayOfMonth,
+                },
+            },
+            select: {
+                balance: true,
+            },
+            orderBy: {
+                date: 'desc',
+            },
+        })
+    ])
+
+    const initialBalance = firstAvailableBalance?.balance || 0
+    const currentBalance = latestBalance?.balance || initialBalance
+
+    let percentageChange = 0
+
+    if (initialBalance !== 0) {
+        percentageChange = Math.abs(
+            ((currentBalance - initialBalance ) / initialBalance ) * 100
+        )
+    }
+    console.log(`init: ${initialBalance} curr: ${currentBalance}`)
+
+    return {
+    percentageChange: percentageChange.toFixed(2),
+    trend: currentBalance > initialBalance ?
+    'up' : 'down',
+    initialBalance,
+    currentBalance
+    }
+}
+
 export async function getTrades(userId:string) {
     try {
         const [tradesData, profitableTrades] = await Promise.all([
             db.trade.findMany({
                 where: {
                     userId: userId,
+                },
+                orderBy: {
+                    createdAt: 'desc'
                 }
             }),
             
@@ -194,4 +256,36 @@ export async function recordTrade( formData: FormData) {
 
     revalidatePath('/dashboard/metrics')
     redirect('/dashboard/metrics')
+}
+
+export async function getDailySummaries( month: string ) {
+    const firstDayOfMonth = new Date(`${year}-${month}-01 00:00:00`)
+    const lastDayOfMonth = endOfMonth(firstDayOfMonth)
+
+    const dailySummaries = await db.dailySummary.findMany({
+        where: {
+            date: {
+                gte: firstDayOfMonth, 
+                lte: lastDayOfMonth
+            }
+        },
+        select: {
+            date: true,
+            balance: true, 
+            loss: true, 
+            profit: true
+        },
+        orderBy: {
+            date: 'asc'
+        }
+    })
+
+    const chartData = dailySummaries.map(summary => ({
+        date: format(summary.date, 'dd'),
+        profit: summary.profit / 100,
+        loss: summary.loss / 100,
+        balance: summary.balance / 100
+    }))
+
+    return chartData
 }
