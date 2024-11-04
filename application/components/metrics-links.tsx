@@ -6,10 +6,6 @@ import clsx from 'clsx'
 
 const links = [
     {
-        name: 'Overview',
-        href: '/dashboard/metrics/account',
-    },
-    {
         name: 'Charts',
         href: '/dashboard/metrics/charts',
     },
@@ -29,8 +25,8 @@ export default function MetricsLinks() {
                             key={link.name}
                             href={link.href}
                             className={clsx(
-                                'flex space-x-2 px-2 hover:border-t-4 transition text-base', 
-                                { 'rounded-sm border-t-4 border-purple-600 text-purple-700': pathname == link.href },
+                                'flex space-x-2 px-2 hover:text-main transition ', 
+                                { 'rounded-sm  text-main': pathname == link.href },
                             )}
                         >
                             <p className="">{link.name}</p>

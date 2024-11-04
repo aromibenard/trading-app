@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"
 import { DollarSign, Dot } from "lucide-react"
+import { Suspense } from "react"
 
 export default async function Page() {
     const user = await currentUser()
@@ -39,10 +40,10 @@ export default async function Page() {
     return (
         <div className="p-4 flex-col w-full flex gap-2">
             <div className="flex px-2 justify-between items-center">
-                <h1>Karibu <span className="font-medium drop-shadow-md bg-gradient-to-r bg-clip-text text-transparent from-purple-400 to-black via-purple-600">{user?.firstName}</span></h1>
+                <h1>Karibu <span className="text-main font-medium drop-shadow-md">{user?.firstName}</span></h1>
                 <span><UserButton/></span>
             </div>
-            <div className="px-2 w-full mx-auto shadow rounded-md grid md:grid-cols-2">
+            <div className="w-full mx-auto rounded-md grid md:grid-cols-2">
                 <div className="grid grid-cols-2  gap-1 p-1 py-2">
                     <div>
                         <h1 className="flex items-center font-bold pt-1 text-3xl text-papo"><DollarSign className="size-6"/><span className="">{balance.toFixed(2)}</span></h1>
@@ -78,11 +79,13 @@ export default async function Page() {
                     </Card>
                 </div>
                 <div className="flex flex-col items-center p-2 pb-3">
-                    <AccountPie 
+                    <Suspense fallback={<p>loading...</p>}>
+                        <AccountPie 
                         balance={balance}
                         profit={profit}
                         loss={loss}
-                    />
+                        />
+                    </Suspense>
                 </div>
             </div>
         </div>

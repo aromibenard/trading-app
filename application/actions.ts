@@ -75,7 +75,7 @@ export async function getTrend( month:string ) {
 
 export async function getTrades(userId:string) {
     try {
-        const [tradesData, profitableTrades] = await Promise.all([
+        const [tradesData, profitableTrades, tradeByCurrency, losingTrades ] = await Promise.all([
             db.trade.findMany({
                 where: {
                     userId: userId,
@@ -90,12 +90,52 @@ export async function getTrades(userId:string) {
                     userId: userId,
                     result: 'profit',
                 }
+            }),
+
+            db.trade.findMany({
+                where : {
+                    userId: userId
+                },
+                select: {
+                    currencyPair: true
+                }
+            }),
+
+            db.trade.findMany({
+                where: {
+                    userId: userId,
+                    result: 'loss',
+                }
             })
         ])
         
+        // map : counts occurences of each pair
+        const currencyCount = tradeByCurrency.reduce<Record<string, number>>((acc, trade) => {
+            // Extract the currencyPair from the current trade object
+            const  currencyPair = String(trade.currencyPair)
+        
+            // Check if the accumulator (acc) already has a key for this currencyPair
+            if (acc[currencyPair]) {
+                // If it exists, increment the count for that currencyPair
+                acc[currencyPair]++
+            } else {
+                // If it doesn't exist, create a new key for the currencyPair and set it to 1
+                acc[currencyPair] = 1
+            }
+            // Return the updated accumulator for the next iteration
+            return acc;
+        }, {})
+
+        const chartData = Object.keys(currencyCount).map(currency => ({
+            currency: currency,
+            count: currencyCount[currency]
+        }))
+
+
         const count = tradesData.length
         const profitableTradesNumber = profitableTrades.length
-        return { count, tradesData , profitableTradesNumber }
+        const losingTradesNumber = losingTrades.length
+        return { count, tradesData , profitableTradesNumber , chartData, losingTradesNumber}
     } catch (error) {
         throw error
     }
@@ -288,4 +328,8 @@ export async function getDailySummaries( month: string ) {
     }))
 
     return chartData
+}
+
+export async function getCurrencies() {
+
 }
