@@ -73,7 +73,7 @@ export default async function Dashboard() {
                         <Image
                         src={'/ill.svg'}
                         alt="analytics image"
-                        height={300}
+                        height={100}
                         width={200}
                         className="object-cover"
                         />
