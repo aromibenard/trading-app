@@ -107,7 +107,7 @@ export async function getTrades(userId:string) {
         ])
         
         // map : counts occurences of each pair
-        const currencyCount = tradeByCurrency.reduce<Record<string, number>>((acc, trade) => {
+        const currencyCount = tradeByCurrency.reduce((acc: Record<string, number>, trade) => {
             // Extract the currencyPair from the current trade object
             const  currencyPair = String(trade.currencyPair)
         
