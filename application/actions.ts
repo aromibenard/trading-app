@@ -70,6 +70,10 @@ export async function getTrend( month:string ) {
     }
 }
 
+interface Trade {
+    currencyPair: string;
+  }
+
 export async function getTrades(userId:string) {
     try {
         const [tradesData, profitableTrades, tradeByCurrency, losingTrades ] = await Promise.all([
@@ -107,7 +111,7 @@ export async function getTrades(userId:string) {
         ])
         
         // map : counts occurences of each pair
-        const currencyCount = tradeByCurrency.reduce((acc: Record<string, number>, trade) => {
+        const currencyCount = tradeByCurrency.reduce((acc: Record<string, number>, trade : Trade) => {
             // Extract the currencyPair from the current trade object
             const  currencyPair = String(trade.currencyPair)
         
