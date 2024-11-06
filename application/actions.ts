@@ -61,8 +61,6 @@ export async function getTrend( month:string ) {
             ((currentBalance - initialBalance ) / initialBalance ) * 100
         )
     }
-    console.log(`init: ${initialBalance} curr: ${currentBalance}`)
-
     return {
     percentageChange: percentageChange.toFixed(2),
     trend: currentBalance > initialBalance ?
@@ -159,7 +157,6 @@ export const getAccountDetails = async (userId:string) => {
         return accountDeets
 
     } catch (error) {
-        console.error(error)
         throw error
     }
 }

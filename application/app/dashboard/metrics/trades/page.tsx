@@ -2,11 +2,13 @@ import { fetchTradePages, getAllTrades, getTradesCount } from "@/actions"
 import Pagination from "@/components/pagination"
 import { auth } from "@clerk/nextjs/server"
 
-export default async function Page({
-    searchParams } : {searchParams? : {
-        query?: string,
-        page?: string,
-    }}) {
+export default async function Page(
+    props: {searchParams? : Promise<{
+            query?: string,
+            page?: string,
+        }>}
+) {
+    const searchParams = await props.searchParams;
 
     const { userId } = await auth()
     const query =  searchParams?.query  || ''
