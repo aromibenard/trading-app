@@ -175,10 +175,7 @@ export async function recordTrade( formData: FormData) {
     })
     
     if (!validatedFormData.success) {
-        return {
-            errors: validatedFormData.error.flatten().fieldErrors,
-            message: 'Please enter valid details'
-        }
+        return 
     }
     
     const { currencyPair, type, result, lotSize, amount } = validatedFormData.data
@@ -187,7 +184,7 @@ export async function recordTrade( formData: FormData) {
     const { userId } = await auth()
 
     if (!userId) {
-        return { message: "User not authenticated" }
+        return 
     }
 
     const user = await db.user.findUnique({
@@ -198,9 +195,7 @@ export async function recordTrade( formData: FormData) {
     if (!user) {
         const userDeets = await currentUser()
 
-        if (!userDeets) return {
-            message : "failed to retrieve user details"
-        }
+        if (!userDeets) return 
 
         await db.user.create({
             data: {
@@ -329,7 +324,65 @@ export async function getDailySummaries( month: string ) {
 
     return chartData
 }
+const itemsPerPage = 10
 
-export async function getCurrencies() {
+export async function fetchTradePages(query: string) {
+    try {
+        // Prepare conditions based on the query input
+        const whereConditions = [];
+    
+        // Check if query can match enum fields (type and result)
+        if (query) {
+            whereConditions.push(
+            { type: { equals: query as any } }, // Cast to 'any' for enum if needed
+            { result: { equals: query as any } }
+            );
+        }
+    
+        // Check if query can match integer (amount)
+        const amountQuery = parseInt(query);
+        if (!isNaN(amountQuery)) {
+            whereConditions.push({ amount: { equals: amountQuery } });
+        }
+    
+        // Add other fields to search (like date if needed)
+        // Example: { date: { contains: query } } if the field is a string
+    
+        // Count total number of trades that match the query
+        const count = await db.trade.count({
+            where: {
+            OR: whereConditions.length > 0 ? whereConditions : undefined,
+            },
+        });
+    
+        // Calculate the total number of pages
+        const totalPages = Math.ceil(count / itemsPerPage);
+        return totalPages;
+        } catch (error) {
+        console.error('Database Error:', error);
+        throw new Error('Failed to fetch total number of trades.');
+    }
+} 
 
+export async function getAllTrades(currentPage: number) {
+    const data = await db.trade.findMany({
+        skip: (currentPage - 1) * itemsPerPage,
+        take: itemsPerPage,
+        where: {
+            id: { gt: 0 }
+        },
+        select: {
+            id: true,
+            type: true,
+            createdAt: true,
+            result: true,
+            amount: true,
+            currencyPair: true,
+            lotSize: true
+        },
+        orderBy: { 
+            id: 'desc'
+        }
+    })
+    return data
 }

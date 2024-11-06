@@ -1,9 +1,8 @@
 import { getTrades } from "@/actions";
-import Form from "@/components/trade-form";
+import TradeForm from "@/components/trade-form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@clerk/nextjs/server";
 import { PencilLine } from "lucide-react";
-import { Suspense } from "react";
 
 export default async function Page() {
     const { userId } = await auth()
@@ -17,7 +16,7 @@ export default async function Page() {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <Form />
+                <TradeForm />
             </CardContent>
             <CardFooter>
                     <CardDescription>

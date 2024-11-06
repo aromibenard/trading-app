@@ -1,10 +1,10 @@
 import { getAccountDetails, getTrades } from "@/actions"
 import { AccountPie } from "@/components/account-pie"
+import  PLBar from "@/components/pl-barchart"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"
 import { DollarSign, Dot } from "lucide-react"
-import { Suspense } from "react"
 
 export default async function Page() {
     const user = await currentUser()
@@ -45,47 +45,55 @@ export default async function Page() {
             </div>
             <div className="w-full mx-auto rounded-md grid md:grid-cols-2">
                 <div className="grid grid-cols-2  gap-1 p-1 py-2">
-                    <div>
-                        <h1 className="flex items-center font-bold pt-1 text-3xl text-papo"><DollarSign className="size-6"/><span className="">{balance.toFixed(2)}</span></h1>
-                        <p className="pl-1 text-xs text-gray-700 -mt-1">Available balance</p>
-                        <div className="grid grid-rows-2 md:grid-cols-2 space-y-1 my-2">
-                            <div className="flex flex-col">
-                                <span className="flex text-sm items-center"><Dot className="text-main"/>Profit</span>
-                                <div>
-                                    <h2 className="ml-[18px] flex items-center text-sm font-semibold text-main"><DollarSign className="size-4"/>{profit.toFixed(2)}</h2>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Balance</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <CardTitle className="flex items-center font-bold pt-1 text-3xl text-papo"><DollarSign className="size-6"/><span className="">{balance.toFixed(2)}</span></CardTitle>
+                            <div className="grid grid-rows-2 md:grid-cols-2 space-y-1 my-2">
+                                <div className="flex flex-col">
+                                    <span className="flex text-sm items-center"><Dot className="text-main"/>Profit</span>
+                                    <div>
+                                        <h2 className="ml-[18px] flex items-center text-sm font-semibold text-main"><DollarSign className="size-4"/>{profit.toFixed(2)}</h2>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="flex text-sm items-center"><Dot className="text-red-500"/><span>Loss</span></span>
+                                    <div>
+                                        <h2 className="ml-[18px] flex items-center text-sm font-semibold text-loss"><DollarSign className="size-4"/>{loss.toFixed(2)}</h2>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col">
-                                <span className="flex text-sm items-center"><Dot className="text-red-500"/><span>Loss</span></span>
-                                <div>
-                                    <h2 className="ml-[18px] flex items-center text-sm font-semibold text-loss"><DollarSign className="size-4"/>{loss.toFixed(2)}</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Strike Rate</CardTitle>
-                            <CardDescription>Showing results for {count} trades</CardDescription>
+                            <CardDescription>based on {count} trades</CardDescription>
                         </CardHeader>
                         <CardContent className="grid items-center justify-center">
                             <h1 className="text-xl font-semibold text-papo">{strikeRate.toFixed(2)}%</h1>
                         </CardContent>
                         <CardFooter>
                             <CardDescription className="">
-                                Profit factor:${profitFactor.toFixed(2)}
+                                Profit factor: <span className = {` drop-shadow-sm
+                                        ${ profitFactor < 1 ? 'text-rose-500' : 
+                                            profitFactor === 1 ? 'text-orange-500' :
+                                            profitFactor >= 1.5 && profitFactor <= 1.9  ? 'text-blue-500' :
+                                            profitFactor >= 2 && profitFactor <= 2.9  ? 'text-purple-600' :
+                                            profitFactor >= 3 && profitFactor <= 3.9  ? 'text-green-400' :
+                                            'text-green-900'}`}>${profitFactor.toFixed(2)}</span>
                             </CardDescription>
                         </CardFooter>
                     </Card>
                 </div>
-                <div className="flex flex-col items-center p-2 pb-3">
-                    <Suspense fallback={<p>loading...</p>}>
-                        <AccountPie 
-                        balance={balance}
-                        profit={profit}
-                        loss={loss}
-                        />
-                    </Suspense>
+                <div className="flex flex-col items-center p-2 pb-3 space-y-3">
+                    <AccountPie 
+                    balance={balance}
+                    profit={profit}
+                    loss={loss}
+                    />
                 </div>
             </div>
         </div>

@@ -3,11 +3,12 @@ import SubmitButton from "./submit-button";
 import { recordTrade } from "@/actions";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Label } from "./ui/label";
+import Form from 'next/form'
 
-export default function Form() {
+export default function TradeForm() {
     return (
         <div>
-            <form action={recordTrade} className="shadow p-4 pb-6 flex flex-col space-y-4 rounded px-5">
+            <Form action={recordTrade} className="shadow p-4 pb-6 flex flex-col space-y-4 rounded px-5">
                 <div className="flex flex-col space-y-2">
                     <div className="flex flex-col space-y-3">
                         <Label htmlFor="currencyPair">Currency Pair</Label>
@@ -77,7 +78,7 @@ export default function Form() {
                     />
                 </div>
                 <SubmitButton />
-            </form>
+            </Form>
         </div>
     )
 }
