@@ -1,6 +1,5 @@
 import { getAccountDetails, getTrades } from "@/actions"
 import { AccountPie } from "@/components/account-pie"
-import  PLBar from "@/components/pl-barchart"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"

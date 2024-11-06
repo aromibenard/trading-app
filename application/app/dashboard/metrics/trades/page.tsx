@@ -1,4 +1,4 @@
-import { fetchTradePages, getAllTrades } from "@/actions"
+import { fetchTradePages, getAllTrades, getTradesCount } from "@/actions"
 import Pagination from "@/components/pagination"
 import { auth } from "@clerk/nextjs/server"
 
@@ -9,15 +9,17 @@ export default async function Page({
     }}) {
 
     const { userId } = await auth()
-    const query = searchParams?.query  || ''
-    const currentPage = Number((searchParams?.page)) || 1
-    const [trades, totalPages ] = await Promise.all([
+    const query =  searchParams?.query  || ''
+    const currentPage = Number(searchParams?.page) || 1
+    const [trades, totalPages, tradeCount ] = await Promise.all([
         getAllTrades(currentPage), 
-        fetchTradePages(query)
+        fetchTradePages(query),
+        getTradesCount(userId as string)
     ])
 
     return (
         <div className="p-6 grid gap-2">
+            <p className="text-sm text-gray-500 my-1"> Showing {tradeCount} results</p>
             <div className="flex justify-between font-semibold">
                 <h2>Currency Pair</h2>
                 <h2>Order Type</h2>

@@ -1,14 +1,13 @@
-import { getAccountDetails, getTrades } from "@/actions";
+import { getTrades } from "@/actions";
 import { CurrencyChart } from "@/components/currency-chart";
 import { EquityCurve } from "@/components/equity-curve";
 import { ProfitFactorChart } from "@/components/profit-factor";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader} from "@/components/ui/card";
 import { auth } from "@clerk/nextjs/server";
 
 export default async function Page() {
     const { userId } = await auth()
-    const [dailySummaries, trades] = await Promise.all([
-        getAccountDetails(userId as string),
+    const [trades] = await Promise.all([
         getTrades(userId as string)
     ])
 

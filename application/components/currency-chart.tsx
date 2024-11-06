@@ -1,13 +1,11 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
 import { PolarGrid, RadialBar, RadialBarChart, TooltipProps } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -15,7 +13,6 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart"
 import { colorMapping, CurrencyPair } from "@/lib/utils"
 
@@ -24,16 +21,22 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
     const { browser, visitors } = payload[0].payload;
     return (
       <Card className="custom-tooltip p-2 rounded">
-        <p className="label">{`${browser} : ${visitors} trades`}</p> {/* Display currency name */}
+        <p className="label">{`${browser} : ${visitors} trades`}</p>
       </Card>
     )
   }
   return null
 }
 
-export function CurrencyChart({ chartDatas }: { chartDatas: any}) {
+type ChartData = {
+  currency: string;
+  count: number;
+};
+
+
+export function CurrencyChart({ chartDatas }: { chartDatas: ChartData[]}) {
   
-  const chartData = chartDatas.map(({ currency, count } : { currency: string, count: string}) => {
+  const chartData = chartDatas.map(({ currency, count }) => {
     return {
       browser: currency, 
       visitors: count, 

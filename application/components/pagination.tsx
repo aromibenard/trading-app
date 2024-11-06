@@ -52,7 +52,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
   const allPages = generatePagination(currentPage, totalPages);
 
   return (
-    <div className="flex">
+    <div className="flex mx-auto my-1">
       <PaginationArrow
         direction="left"
         href={createPageURL(currentPage - 1)}

@@ -21,7 +21,6 @@ const year = new Date().getFullYear()
 // db transactions 🤑
 export async function getTrend( month:string ) {
     const firstDayOfMonth = new Date(`${year}-${month}-01 00:00:00`)
-    const lastDayOfMonth = endOfMonth(firstDayOfMonth)
 
     const [latestBalance, firstAvailableBalance ] = await Promise.all([
         db.dailySummary.findFirst({
@@ -385,4 +384,14 @@ export async function getAllTrades(currentPage: number) {
         }
     })
     return data
+}
+
+export async function getTradesCount(userId: string) {
+    const number = await db.trade.count({
+        where: {
+            userId: userId
+        }
+    })
+
+    return number
 }
