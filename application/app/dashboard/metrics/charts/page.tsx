@@ -22,6 +22,8 @@ export default async function Page() {
         }
     })
 
+    if(!trades) return 
+
     const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : Infinity
     
     return (
@@ -31,17 +33,17 @@ export default async function Page() {
 
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-col md:flex-row space-y-4 md:space-x-6">
-                        
+                    <div className="grid grid-rows-3 md:grid-rows-2 gap-2 ">
                         <EquityCurve />
-                        <ProfitFactorChart 
-                            profitFactor={profitFactor}
-                            count={trades.count}
-                        />
-                        <CurrencyChart 
-                        chartDatas={trades.chartData}
-                        />
-
+                        <div className="grid grid-rows-2 md:grid-cols-2 gap-2">
+                            <ProfitFactorChart 
+                                profitFactor={profitFactor}
+                                count={trades.count}
+                            />
+                            <CurrencyChart 
+                            chartDatas={trades.chartData}
+                            />
+                        </div>
                     </div>
                 </CardContent>
             </Card>

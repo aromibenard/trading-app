@@ -49,8 +49,11 @@ export async function getTrend( month:string ) {
                 date: 'desc',
             },
         })
-    ])
 
+    ])
+    
+    if(!latestBalance && !firstAvailableBalance) return
+    
     const initialBalance = firstAvailableBalance?.balance || 0
     const currentBalance = latestBalance?.balance || initialBalance
 
